@@ -28,7 +28,7 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-type Tab = 'config' | 'scripts' | 'preview' | 'structure';
+type Tab = 'config' | 'scripts' | 'preview' | 'structure' | 'download';
 
 export default function App() {
   const [config, setConfig] = useState<PluginConfig>(defaultPlugin);
@@ -103,12 +103,13 @@ export default function App() {
           </div>
           <button
             onClick={downloadZip}
-            className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-lg shadow-blue-500/20"
+            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold transition-all shadow-lg shadow-green-500/25 hover:scale-105 animate-pulse"
+            style={{ animationDuration: '2s' }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            Download ZIP
+            ⬇️ Download Plugin ZIP
           </button>
         </div>
       </header>
@@ -135,6 +136,20 @@ export default function App() {
               {tab.label}
             </button>
           ))}
+          <button
+            onClick={() => setActiveTab('download')}
+            className={`px-4 py-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'download'
+                ? 'border-green-500 text-green-400'
+                : 'border-transparent text-green-400 hover:text-green-300'
+            }`}
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+            </span>
+            ⬇️ Download Plugin
+          </button>
         </div>
       </nav>
 
@@ -159,6 +174,14 @@ export default function App() {
           )}
           {activeTab === 'preview' && (
             <PreviewPanel files={generatedFiles} copyToClipboard={copyToClipboard} copiedFile={copiedFile} />
+          )}
+          {activeTab === 'download' && (
+            <DownloadPanel
+              config={config}
+              downloadZip={downloadZip}
+              generatedFiles={generatedFiles}
+              folderStructure={folderStructure}
+            />
           )}
         </div>
       </main>
@@ -572,6 +595,161 @@ function PreviewPanel({
             {files[activeFile].content}
           </code>
         </pre>
+      </div>
+    </div>
+  );
+}
+
+// Download Panel Component
+function DownloadPanel({
+  config,
+  downloadZip,
+  generatedFiles,
+  folderStructure,
+}: {
+  config: PluginConfig;
+  downloadZip: () => void;
+  generatedFiles: GeneratedFile[];
+  folderStructure: string;
+}) {
+  const [downloaded, setDownloaded] = useState(false);
+
+  const handleDownload = () => {
+    downloadZip();
+    setDownloaded(true);
+    setTimeout(() => setDownloaded(false), 3000);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Big Download Card */}
+      <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-blue-500/30 p-8 text-center">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-blue-500/20">
+          <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Download Your pyRevit Plugin</h2>
+        <p className="text-gray-400 mb-6 max-w-lg mx-auto">
+          Your extension <span className="text-blue-400 font-mono">{config.bundleName}.extension</span> is ready with{' '}
+          <span className="text-purple-400 font-semibold">{generatedFiles.filter(f => !f.path.endsWith('.png') && !f.path.endsWith('.txt')).length}</span> files.
+        </p>
+
+        {/* Big Download Button */}
+        <button
+          onClick={handleDownload}
+          className={`inline-flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl ${
+            downloaded
+              ? 'bg-green-600 hover:bg-green-500 text-white shadow-green-500/20'
+              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-blue-500/30 hover:scale-105'
+          }`}
+        >
+          {downloaded ? (
+            <>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Downloaded! Check your Downloads folder
+            </>
+          ) : (
+            <>
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download {config.bundleName}.extension.zip
+            </>
+          )}
+        </button>
+
+        <p className="text-xs text-gray-500 mt-4">
+          File: <code className="text-blue-400">{config.bundleName}.extension.zip</code>
+        </p>
+      </div>
+
+      {/* Installation Steps */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">📋 How to Install</h3>
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">1</span>
+              <div>
+                <p className="font-medium text-white">Click the Download button above</p>
+                <p className="text-gray-400 text-sm mt-1">This generates a ZIP file with your complete plugin</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">2</span>
+              <div>
+                <p className="font-medium text-white">Extract the ZIP file</p>
+                <p className="text-gray-400 text-sm mt-1">Right-click → Extract (Windows) or double-click (Mac)</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">3</span>
+              <div>
+                <p className="font-medium text-white">Move to pyRevit Extensions folder</p>
+                <div className="mt-2 p-2 bg-gray-800 rounded border border-gray-700">
+                  <code className="text-xs text-blue-400 break-all">
+                    %appdata%\pyRevit\Extensions\
+                  </code>
+                </div>
+                <p className="text-gray-500 text-xs mt-1">Or: C:\Users\YourName\AppData\Roaming\pyRevit\Extensions\</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">4</span>
+              <div>
+                <p className="font-medium text-white">Add icons (optional but recommended)</p>
+                <p className="text-gray-400 text-sm mt-1">Place 32×32 PNG images named <code className="bg-gray-800 px-1 rounded text-blue-400">icon.png</code> in each button folder</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <span className="flex-shrink-0 w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">5</span>
+              <div>
+                <p className="font-medium text-white">Restart Revit or click "Reload" in pyRevit</p>
+                <p className="text-gray-400 text-sm mt-1">Your "{config.tabName}" tab will appear in the ribbon!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Folder Structure */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+            <h3 className="text-lg font-semibold text-white mb-3">📁 What's Inside the ZIP</h3>
+            <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 overflow-x-auto font-mono leading-relaxed">
+              {folderStructure}
+            </pre>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+            <h3 className="text-lg font-semibold text-white mb-3">💡 Quick Tips</h3>
+            <ul className="space-y-2 text-sm text-gray-400">
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">✓</span>
+                <span>Edit <code className="bg-gray-800 px-1 rounded text-green-400">script.py</code> files to add your custom logic</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">✓</span>
+                <span>Icons must be 32×32 pixels PNG format</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">✓</span>
+                <span>Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.revit</code> for document access</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-400 mt-0.5">✓</span>
+                <span>Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.forms</code> for UI dialogs</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-yellow-400 mt-0.5">⚠</span>
+                <span>Make sure pyRevit is installed in your Revit first</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
