@@ -15,20 +15,11 @@ const defaultPlugin: PluginConfig = {
   scripts: [],
 };
 
-const defaultScript: Omit<ScriptConfig, 'id'> = {
-  name: 'sample_tool',
-  title: 'Sample Tool',
-  tooltip: 'A sample pyRevit tool',
-  type: 'pushbutton',
-  script: '',
-  icon: '',
-};
-
 function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-type Tab = 'config' | 'scripts' | 'preview' | 'structure' | 'download';
+type Tab = 'config' | 'scripts' | 'structure' | 'preview' | 'download';
 
 export default function App() {
   const [config, setConfig] = useState<PluginConfig>(defaultPlugin);
@@ -42,10 +33,13 @@ export default function App() {
 
   const addScript = useCallback(() => {
     const newScript: ScriptConfig = {
-      ...defaultScript,
       id: generateId(),
       name: `tool_${config.scripts.length + 1}`,
       title: `Tool ${config.scripts.length + 1}`,
+      tooltip: 'A pyRevit tool',
+      type: 'pushbutton',
+      script: '',
+      icon: '',
     };
     updateConfig({ scripts: [...config.scripts, newScript] });
     setSelectedScript(newScript.id);
@@ -71,7 +65,6 @@ export default function App() {
       if (!file.path.endsWith('.png')) {
         zip.file(file.path, file.content);
       } else {
-        // Add a placeholder for icon
         zip.file(file.path.replace('.png', '.txt'), 'Place your 32x32 PNG icon here');
       }
     }
@@ -89,7 +82,7 @@ export default function App() {
     <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
       {/* Header */}
       <header className="bg-gray-900 border-b border-gray-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,26 +96,26 @@ export default function App() {
           </div>
           <button
             onClick={downloadZip}
-            className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-5 py-2.5 rounded-lg font-bold transition-all shadow-lg shadow-green-500/25 hover:scale-105 animate-pulse"
-            style={{ animationDuration: '2s' }}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white px-5 py-2.5 rounded-lg font-bold transition-all shadow-lg"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            ⬇️ Download Plugin ZIP
+            Download Plugin ZIP
           </button>
         </div>
       </header>
 
       {/* Navigation Tabs */}
       <nav className="bg-gray-900/50 border-b border-gray-800 px-6">
-        <div className="max-w-7xl mx-auto flex gap-1">
-          {[
+        <div className="max-w-7xl mx-auto flex gap-1 flex-wrap">
+          {([
             { id: 'config' as Tab, label: 'Plugin Config', icon: '⚙️' },
             { id: 'scripts' as Tab, label: 'Scripts', icon: '📝' },
             { id: 'structure' as Tab, label: 'Folder Structure', icon: '📁' },
             { id: 'preview' as Tab, label: 'Code Preview', icon: '👁️' },
-          ].map(tab => (
+            { id: 'download' as Tab, label: 'Download', icon: '⬇️' },
+          ]).map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -136,20 +129,6 @@ export default function App() {
               {tab.label}
             </button>
           ))}
-          <button
-            onClick={() => setActiveTab('download')}
-            className={`px-4 py-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
-              activeTab === 'download'
-                ? 'border-green-500 text-green-400'
-                : 'border-transparent text-green-400 hover:text-green-300'
-            }`}
-          >
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-            </span>
-            ⬇️ Download Plugin
-          </button>
         </div>
       </nav>
 
@@ -197,14 +176,12 @@ export default function App() {
   );
 }
 
-// Config Panel Component
+/* ============ CONFIG PANEL ============ */
 function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateConfig: (u: Partial<PluginConfig>) => void }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span className="text-blue-400">●</span> Extension Settings
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-4">⚙️ Extension Settings</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Extension Name</label>
@@ -213,19 +190,17 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               value={config.name}
               onChange={e => updateConfig({ name: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="MyExtension"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Bundle Name (folder name)</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Bundle Name (folder)</label>
             <input
               type="text"
               value={config.bundleName}
               onChange={e => updateConfig({ bundleName: e.target.value.replace(/\s+/g, '') })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="MyExtension"
             />
-            <p className="text-xs text-gray-500 mt-1">No spaces. Will become: <code className="text-blue-400">{config.bundleName}.extension</code></p>
+            <p className="text-xs text-gray-500 mt-1">No spaces. Folder: <code className="text-blue-400">{config.bundleName}.extension</code></p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Author</label>
@@ -234,7 +209,6 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               value={config.author}
               onChange={e => updateConfig({ author: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="Your Name"
             />
           </div>
           <div>
@@ -244,7 +218,6 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               value={config.version}
               onChange={e => updateConfig({ version: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="1.0.0"
             />
           </div>
           <div>
@@ -254,16 +227,13 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               onChange={e => updateConfig({ description: e.target.value })}
               rows={3}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
-              placeholder="What does this extension do?"
             />
           </div>
         </div>
       </div>
 
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <span className="text-purple-400">●</span> UI Structure
-        </h2>
+        <h2 className="text-lg font-semibold text-white mb-4">🎨 UI Structure</h2>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Tab Name</label>
@@ -272,9 +242,7 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               value={config.tabName}
               onChange={e => updateConfig({ tabName: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="MyTab"
             />
-            <p className="text-xs text-gray-500 mt-1">Appears as a tab in the Revit ribbon</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Panel Name</label>
@@ -283,12 +251,10 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               value={config.panelName}
               onChange={e => updateConfig({ panelName: e.target.value })}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-              placeholder="MyPanel"
             />
-            <p className="text-xs text-gray-500 mt-1">Panel within the tab containing your tools</p>
           </div>
 
-          {/* Preview */}
+          {/* Ribbon Preview */}
           <div className="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
             <h3 className="text-sm font-medium text-gray-300 mb-3">Ribbon Preview</h3>
             <div className="bg-gray-700 rounded-lg p-3">
@@ -301,18 +267,15 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
               </div>
               <div className="mt-3 border-t border-gray-600 pt-3">
                 <div className="flex items-center gap-3">
-                  <div className="bg-gray-600 rounded-lg p-2 border border-blue-500/30">
-                    <div className="w-8 h-8 bg-blue-500/20 rounded flex items-center justify-center text-xs">🔧</div>
-                    <div className="text-[10px] text-gray-300 mt-1 text-center">{config.panelName}</div>
-                  </div>
-                  {config.scripts.slice(0, 3).map(s => (
-                    <div key={s.id} className="text-center">
-                      <div className="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center text-xs">⚡</div>
-                      <div className="text-[9px] text-gray-400 mt-1 max-w-[50px] truncate">{s.title}</div>
-                    </div>
-                  ))}
-                  {config.scripts.length === 0 && (
-                    <div className="text-xs text-gray-500 italic">Add scripts to see them here</div>
+                  {config.scripts.length === 0 ? (
+                    <div className="text-xs text-gray-500 italic">Add scripts to see buttons here</div>
+                  ) : (
+                    config.scripts.slice(0, 4).map(s => (
+                      <div key={s.id} className="text-center">
+                        <div className="w-8 h-8 bg-purple-500/20 rounded flex items-center justify-center text-xs">⚡</div>
+                        <div className="text-[9px] text-gray-400 mt-1 max-w-[50px] truncate">{s.title}</div>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -324,7 +287,7 @@ function ConfigPanel({ config, updateConfig }: { config: PluginConfig; updateCon
   );
 }
 
-// Scripts Panel Component
+/* ============ SCRIPTS PANEL ============ */
 function ScriptsPanel({
   config,
   selectedScript,
@@ -360,7 +323,7 @@ function ScriptsPanel({
             <div className="text-center py-8 text-gray-500">
               <div className="text-3xl mb-2">📝</div>
               <p className="text-sm">No scripts yet</p>
-              <p className="text-xs mt-1">Click "Add" to create your first tool</p>
+              <p className="text-xs mt-1">Click &quot;Add&quot; to create your first tool</p>
             </div>
           )}
           {config.scripts.map(script => (
@@ -378,14 +341,15 @@ function ScriptsPanel({
                   <div className="font-medium text-sm">{script.title}</div>
                   <div className="text-xs text-gray-500 mt-0.5">{script.type} • {script.name}</div>
                 </div>
-                <button
+                <span
+                  role="button"
+                  tabIndex={0}
                   onClick={(e) => { e.stopPropagation(); removeScript(script.id); }}
-                  className="text-gray-500 hover:text-red-400 p-1 transition-colors"
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); removeScript(script.id); } }}
+                  className="text-gray-500 hover:text-red-400 p-1 transition-colors cursor-pointer"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                  ✕
+                </span>
               </div>
             </button>
           ))}
@@ -396,7 +360,7 @@ function ScriptsPanel({
       <div className="lg:col-span-2 bg-gray-900 rounded-xl border border-gray-800 p-6">
         {currentScript ? (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white">Edit Script: {currentScript.title}</h2>
+            <h2 className="text-lg font-semibold text-white">Edit: {currentScript.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Script Name (folder)</label>
@@ -451,11 +415,10 @@ function ScriptsPanel({
               )}
             </div>
 
-            {/* Code Preview */}
             {currentScript.type !== 'urlbutton' && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">Generated Python Script</label>
-                <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-green-400 overflow-x-auto max-h-64 font-mono">
+                <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-green-400 overflow-x-auto max-h-64 font-mono whitespace-pre-wrap">
                   {generateScriptFile(currentScript)}
                 </pre>
                 <p className="text-xs text-gray-500 mt-2">💡 Edit this code after downloading. The template includes common pyRevit patterns.</p>
@@ -463,7 +426,7 @@ function ScriptsPanel({
             )}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="flex items-center justify-center h-64 text-gray-500">
             <div className="text-center">
               <div className="text-4xl mb-3">👈</div>
               <p>Select a script to edit or add a new one</p>
@@ -475,19 +438,17 @@ function ScriptsPanel({
   );
 }
 
-// Structure Panel Component
+/* ============ STRUCTURE PANEL ============ */
 function StructurePanel({ structure, config }: { structure: string; config: PluginConfig }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
         <h2 className="text-lg font-semibold text-white mb-4">📁 Folder Structure</h2>
-        <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto font-mono leading-relaxed">
+        <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap">
           {structure}
         </pre>
         {config.scripts.length === 0 && (
-          <p className="text-sm text-yellow-500/80 mt-3 flex items-center gap-2">
-            <span>⚠️</span> Add scripts to see the complete structure
-          </p>
+          <p className="text-sm text-yellow-500/80 mt-3">⚠️ Add scripts to see the complete structure</p>
         )}
       </div>
 
@@ -498,35 +459,30 @@ function StructurePanel({ structure, config }: { structure: string; config: Plug
             <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">1</span>
             <div>
               <p className="font-medium text-white">Download the ZIP file</p>
-              <p className="text-gray-400 text-xs mt-1">Click the "Download ZIP" button in the header</p>
+              <p className="text-gray-400 text-xs mt-1">Click the &quot;Download Plugin ZIP&quot; button</p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">2</span>
             <div>
               <p className="font-medium text-white">Extract to pyRevit extensions folder</p>
-              <p className="text-gray-400 text-xs mt-1">Usually: <code className="bg-gray-800 px-1 rounded">%appdata%/pyRevit/Extensions/</code></p>
+              <p className="text-gray-400 text-xs mt-1">
+                <code className="bg-gray-800 px-1 rounded">%appdata%/pyRevit/Extensions/</code>
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">3</span>
             <div>
-              <p className="font-medium text-white">Add icon files</p>
-              <p className="text-gray-400 text-xs mt-1">Place 32×32 PNG icons in each button folder</p>
+              <p className="font-medium text-white">Add icon files (32×32 PNG)</p>
+              <p className="text-gray-400 text-xs mt-1">Place icon.png in each button folder</p>
             </div>
           </div>
           <div className="flex gap-3">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold">4</span>
             <div>
-              <p className="font-medium text-white">Reload pyRevit</p>
-              <p className="text-gray-400 text-xs mt-1">Click "Reload" in pyRevit or restart Revit</p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <span className="flex-shrink-0 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold">✓</span>
-            <div>
-              <p className="font-medium text-white">Your tools appear in the Revit ribbon!</p>
-              <p className="text-gray-400 text-xs mt-1">Under the "{config.tabName}" tab → "{config.panelName}" panel</p>
+              <p className="font-medium text-white">Reload pyRevit or restart Revit</p>
+              <p className="text-gray-400 text-xs mt-1">Your tools will appear in the ribbon!</p>
             </div>
           </div>
         </div>
@@ -542,7 +498,7 @@ function StructurePanel({ structure, config }: { structure: string; config: Plug
   );
 }
 
-// Preview Panel Component
+/* ============ PREVIEW PANEL ============ */
 function PreviewPanel({
   files,
   copyToClipboard,
@@ -590,7 +546,7 @@ function PreviewPanel({
             {copiedFile === files[activeFile].path ? '✓ Copied!' : '📋 Copy'}
           </button>
         </div>
-        <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm overflow-x-auto max-h-[500px] font-mono">
+        <pre className="bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm overflow-x-auto max-h-[500px] font-mono whitespace-pre-wrap">
           <code className={files[activeFile].language === 'python' ? 'text-green-400' : 'text-yellow-300'}>
             {files[activeFile].content}
           </code>
@@ -600,7 +556,7 @@ function PreviewPanel({
   );
 }
 
-// Download Panel Component
+/* ============ DOWNLOAD PANEL ============ */
 function DownloadPanel({
   config,
   downloadZip,
@@ -620,11 +576,13 @@ function DownloadPanel({
     setTimeout(() => setDownloaded(false), 3000);
   };
 
+  const fileCount = generatedFiles.filter(f => !f.path.endsWith('.png') && !f.path.endsWith('.txt')).length;
+
   return (
     <div className="space-y-6">
       {/* Big Download Card */}
       <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 rounded-2xl border border-blue-500/30 p-8 text-center">
-        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl shadow-blue-500/20">
+        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
           <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
@@ -632,16 +590,15 @@ function DownloadPanel({
         <h2 className="text-2xl font-bold text-white mb-2">Download Your pyRevit Plugin</h2>
         <p className="text-gray-400 mb-6 max-w-lg mx-auto">
           Your extension <span className="text-blue-400 font-mono">{config.bundleName}.extension</span> is ready with{' '}
-          <span className="text-purple-400 font-semibold">{generatedFiles.filter(f => !f.path.endsWith('.png') && !f.path.endsWith('.txt')).length}</span> files.
+          <span className="text-purple-400 font-semibold">{fileCount}</span> files.
         </p>
 
-        {/* Big Download Button */}
         <button
           onClick={handleDownload}
           className={`inline-flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-bold transition-all shadow-xl ${
             downloaded
-              ? 'bg-green-600 hover:bg-green-500 text-white shadow-green-500/20'
-              : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-blue-500/30 hover:scale-105'
+              ? 'bg-green-600 hover:bg-green-500 text-white'
+              : 'bg-green-600 hover:bg-green-500 text-white hover:scale-105'
           }`}
         >
           {downloaded ? (
@@ -666,7 +623,7 @@ function DownloadPanel({
         </p>
       </div>
 
-      {/* Installation Steps */}
+      {/* Installation Steps + Structure */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">📋 How to Install</h3>
@@ -690,63 +647,42 @@ function DownloadPanel({
               <div>
                 <p className="font-medium text-white">Move to pyRevit Extensions folder</p>
                 <div className="mt-2 p-2 bg-gray-800 rounded border border-gray-700">
-                  <code className="text-xs text-blue-400 break-all">
-                    %appdata%\pyRevit\Extensions\
-                  </code>
+                  <code className="text-xs text-blue-400 break-all">%appdata%\pyRevit\Extensions\</code>
                 </div>
-                <p className="text-gray-500 text-xs mt-1">Or: C:\Users\YourName\AppData\Roaming\pyRevit\Extensions\</p>
               </div>
             </div>
             <div className="flex gap-3">
               <span className="flex-shrink-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-xs font-bold text-white">4</span>
               <div>
-                <p className="font-medium text-white">Add icons (optional but recommended)</p>
-                <p className="text-gray-400 text-sm mt-1">Place 32×32 PNG images named <code className="bg-gray-800 px-1 rounded text-blue-400">icon.png</code> in each button folder</p>
+                <p className="font-medium text-white">Add 32×32 PNG icons to each button folder</p>
               </div>
             </div>
             <div className="flex gap-3">
-              <span className="flex-shrink-0 w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">5</span>
+              <span className="flex-shrink-0 w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-xs font-bold text-white">✓</span>
               <div>
-                <p className="font-medium text-white">Restart Revit or click "Reload" in pyRevit</p>
-                <p className="text-gray-400 text-sm mt-1">Your "{config.tabName}" tab will appear in the ribbon!</p>
+                <p className="font-medium text-white">Restart Revit or click &quot;Reload&quot; in pyRevit</p>
+                <p className="text-gray-400 text-sm mt-1">Your &quot;{config.tabName}&quot; tab will appear!</p>
               </div>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
-          {/* Folder Structure */}
           <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-white mb-3">📁 What's Inside the ZIP</h3>
-            <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 overflow-x-auto font-mono leading-relaxed">
+            <h3 className="text-lg font-semibold text-white mb-3">📁 What&apos;s Inside the ZIP</h3>
+            <pre className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-300 overflow-x-auto font-mono leading-relaxed whitespace-pre-wrap">
               {folderStructure}
             </pre>
           </div>
 
-          {/* Quick Tips */}
           <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
             <h3 className="text-lg font-semibold text-white mb-3">💡 Quick Tips</h3>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Edit <code className="bg-gray-800 px-1 rounded text-green-400">script.py</code> files to add your custom logic</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Icons must be 32×32 pixels PNG format</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.revit</code> for document access</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.forms</code> for UI dialogs</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-yellow-400 mt-0.5">⚠</span>
-                <span>Make sure pyRevit is installed in your Revit first</span>
-              </li>
+              <li>✓ Edit <code className="bg-gray-800 px-1 rounded text-green-400">script.py</code> files to add your logic</li>
+              <li>✓ Icons must be 32×32 pixels PNG format</li>
+              <li>✓ Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.revit</code> for document access</li>
+              <li>✓ Use <code className="bg-gray-800 px-1 rounded text-green-400">pyrevit.forms</code> for UI dialogs</li>
+              <li>⚠ Make sure pyRevit is installed in Revit first</li>
             </ul>
           </div>
         </div>
